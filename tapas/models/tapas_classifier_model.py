@@ -1028,8 +1028,7 @@ def model_fn_builder(
       output_spec = tf.estimator.EstimatorSpec(
           mode=mode,
           loss=total_loss,
-          train_op=train_op,
-          scaffold_fn=scaffold_fn)
+          train_op=train_op)
     elif mode == tf.estimator.ModeKeys.EVAL:
       eval_metrics = (
           _calculate_eval_metrics_fn,
@@ -1046,8 +1045,7 @@ def model_fn_builder(
       output_spec = tf.estimator.EstimatorSpec(
           mode=mode,
           loss=total_loss,
-          eval_metrics=eval_metrics,
-          scaffold_fn=scaffold_fn)
+          eval_metrics=eval_metrics)
     else:
       predictions = {
           "probabilities": outputs.probs,
@@ -1096,7 +1094,7 @@ def model_fn_builder(
       if custom_prediction_keys:
         predictions = {key: predictions[key] for key in custom_prediction_keys}
       output_spec = tf.estimator.EstimatorSpec(
-          mode=mode, predictions=predictions, scaffold_fn=scaffold_fn)
+          mode=mode, predictions=predictions)
     return output_spec
 
   return model_fn
