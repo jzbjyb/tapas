@@ -504,10 +504,7 @@ def _train_and_predict(
   # If TPU is not available, this will fall back to normal Estimator on CPU/GPU.
   estimator = tf.estimator.Estimator(
       model_fn=model_fn,
-      config=run_config,
-      train_batch_size=train_batch_size // gradient_accumulation_steps,
-      eval_batch_size=None,
-      predict_batch_size=test_batch_size)
+      config=run_config)
 
   if mode == Mode.TRAIN:
     _print('Training')
@@ -526,6 +523,7 @@ def _train_and_predict(
         add_classification_labels=do_model_classification,
         add_answer=use_answer_as_supervision,
         include_id=False,
+        params={'batch_size': train_batch_size // gradient_accumulation_steps}
     )
     estimator.train(
         input_fn=train_input_fn,
@@ -664,7 +662,9 @@ def _predict_for_set(
       add_aggregation_function_id=do_model_aggregation,
       add_classification_labels=do_model_classification,
       add_answer=use_answer_as_supervision,
-      include_id=False)
+      include_id=False,
+      params={'batch_size': FLAGS.test_batch_size}
+  )
   result = estimator.predict(input_fn=predict_input_fn)
   exp_prediction_utils.write_predictions(
       result,
