@@ -26,7 +26,8 @@ from tapas.datasets import table_dataset
 from tapas.models import segmented_tensor
 from tapas.models import tapas_classifier_model_utils as utils
 from tapas.models.bert import modeling
-from tapas.models.bert import optimization
+#from tapas.models.bert import optimization
+from tapas.models.bert import custom_optimization as optimization
 from tapas.models.bert import table_bert
 from tapas.utils import span_prediction_utils
 import tensorflow.compat.v1 as tf
@@ -1022,16 +1023,9 @@ def model_fn_builder(
     output_spec = None
     if mode == tf.estimator.ModeKeys.TRAIN:
       train_op = optimization.create_optimizer(
-          total_loss,
-          config.learning_rate,
-          config.num_train_steps,
-          config.num_warmup_steps,
-          config.use_tpu,
-          gradient_accumulation_steps=params.get("gradient_accumulation_steps",
-                                                 1),
-          grad_clipping=config.grad_clipping)
+          total_loss, config.learning_rate, config.num_train_steps, config.num_warmup_steps, grad_clipping=config.grad_clipping)
 
-      output_spec = tf.estimator.tpu.TPUEstimatorSpec(
+      output_spec = tf.estimator.EstimatorSpec(
           mode=mode,
           loss=total_loss,
           train_op=train_op,
@@ -1049,7 +1043,7 @@ def model_fn_builder(
               classification_class_index,
               outputs.logits_cls,
           ])
-      output_spec = tf.estimator.tpu.TPUEstimatorSpec(
+      output_spec = tf.estimator.EstimatorSpec(
           mode=mode,
           loss=total_loss,
           eval_metrics=eval_metrics,
@@ -1101,7 +1095,7 @@ def model_fn_builder(
 
       if custom_prediction_keys:
         predictions = {key: predictions[key] for key in custom_prediction_keys}
-      output_spec = tf.estimator.tpu.TPUEstimatorSpec(
+      output_spec = tf.estimator.EstimatorSpec(
           mode=mode, predictions=predictions, scaffold_fn=scaffold_fn)
     return output_spec
 

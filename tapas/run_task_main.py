@@ -93,6 +93,16 @@ flags.DEFINE_integer(
     'Train batch size, if None will use the value from the hparams of the task '
     '(recommended).')
 
+flags.DEFINE_integer(
+    'num_train_examples', None,
+    'Total number of examples to go through in training'
+    '(recommended).')
+
+flags.DEFINE_integer(
+    'save_checkpoints_steps', 1000,
+    'Save model per steps'
+    '(recommended).')
+
 flags.DEFINE_integer('gradient_accumulation_steps', 1,
                      'Accumulate gradients across multiple steps.')
 
@@ -401,6 +411,8 @@ def _train_and_predict(
   do_model_aggregation = num_aggregation_labels > 0
   do_model_classification = num_classification_labels > 0
 
+  ngpus = len(tf.config.list_physical_devices('GPU'))
+  _print(f'--> {ngpus} GPUS')
   hparams = hparam_utils.get_hparams(task)
   if test_mode:
     if train_batch_size is None:
@@ -411,8 +423,11 @@ def _train_and_predict(
   else:
     if train_batch_size is None:
       train_batch_size = hparams['train_batch_size']
-    num_train_examples = hparams['num_train_examples']
-    num_train_steps = int(num_train_examples / train_batch_size)
+    if FLAGS.num_train_examples is not None:
+        num_train_examples = FLAGS.num_train_examples
+    else:
+        num_train_examples = hparams['num_train_examples']
+    num_train_steps = int(num_train_examples / train_batch_size / ngpus)
     num_warmup_steps = int(num_train_steps * hparams['warmup_ratio'])
 
   bert_config = modeling.BertConfig.from_json_file(bert_config_file)
@@ -476,23 +491,18 @@ def _train_and_predict(
         project=tpu_options.gcp_project,
     )
 
-  run_config = tf.estimator.tpu.RunConfig(
-      cluster=tpu_cluster_resolver,
-      master=tpu_options.master,
+  strategy = tf.distribute.MirroredStrategy()
+
+  run_config = tf.estimator.RunConfig(
       model_dir=model_dir,
       tf_random_seed=FLAGS.tf_random_seed,
-      save_checkpoints_steps=1000,
+      save_checkpoints_steps=FLAGS.save_checkpoints_steps,
       keep_checkpoint_max=5,
       keep_checkpoint_every_n_hours=4.0,
-      tpu_config=tf.estimator.tpu.TPUConfig(
-          iterations_per_loop=tpu_options.iterations_per_loop,
-          num_shards=tpu_options.num_tpu_cores,
-          per_host_input_for_training=is_per_host))
+      train_distribute=strategy)
 
   # If TPU is not available, this will fall back to normal Estimator on CPU/GPU.
-  estimator = tf.estimator.tpu.TPUEstimator(
-      params={'gradient_accumulation_steps': gradient_accumulation_steps},
-      use_tpu=tpu_options.use_tpu,
+  estimator = tf.estimator.Estimator(
       model_fn=model_fn,
       config=run_config,
       train_batch_size=train_batch_size // gradient_accumulation_steps,
