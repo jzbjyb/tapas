@@ -1,0 +1,5 @@
+Dockerfile
+.idea
+data
+pretrained_models
+wandb

@@ -1,0 +1,36 @@
+description: tapas
+
+environment:
+  image: jzbjyb/tapas:latest
+
+target:
+  service: amlk8s
+  name: itp-scus-v100
+  vc: AlexTScience
+
+storage:
+  data:
+    storage_account_name: tsinterns
+    container_name: t-zhjiang
+    mount_dir: /mnt/root
+
+code:
+  local_dir: $CONFIG_DIR
+
+jobs:
+- name: bert_base_wikisql_ep50
+  sku: G8
+  sku_count: 1
+  aml_mpirun:
+    process_count_per_node: 8
+    communicator: "OpenMpi"
+  command:
+  - ./run.sh bert-base-uncased/bert_model.ckpt bert-base-uncased/bert_config.json bert_base_wikisql_ep50
+- name: tapas_base_wikisql_ep50
+  sku: G8
+  sku_count: 1
+  aml_mpirun:
+    process_count_per_node: 8
+    communicator: "OpenMpi"
+  command:
+  - ./run.sh tapas_base/model.ckpt tapas_base/bert_config.json tapas_base_wikisql_ep50

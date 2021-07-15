@@ -587,8 +587,6 @@ def _predict(
 ):
   """Writes predictions for dev and test."""
   for test_set in TestSet:
-    if test_set != TestSet.TEST:
-        continue
     _predict_for_set(
         estimator,
         do_model_aggregation,
