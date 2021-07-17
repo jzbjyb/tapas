@@ -25,7 +25,7 @@ RUN pip install --upgrade pip
 RUN conda create -n tapas python=3.7
 SHELL ["conda", "run", "-n", "tapas", "/bin/bash", "-c"]
 RUN apt-get -y install protobuf-compiler
-COPY requirements.txt /tmp/scripts/.
+COPY requirements.txt /tmp/scripts/
 RUN pip install -r /tmp/scripts/requirements.txt
 RUN conda install cudatoolkit=10.1
 RUN conda install -c anaconda cudnn=7.6.5

@@ -68,8 +68,7 @@ def create_optimizer(loss, init_lr, num_train_steps, num_warmup_steps, grad_clip
         beta_1=0.9,
         beta_2=0.999,
         epsilon=1e-6,
-        exclude_from_weight_decay=["LayerNorm", "layer_norm", "bias"],
-        grad_clipping=grad_clipping)
+        exclude_from_weight_decay=["LayerNorm", "layer_norm", "bias"])
 
     # REF: https://github.com/tensorflow/tensorflow/issues/25080
     # if fp16:
@@ -95,6 +94,8 @@ def create_optimizer(loss, init_lr, num_train_steps, num_warmup_steps, grad_clip
                                             all_finite,
                                             lambda: tf.global_norm(grads),
                                             lambda: tf.constant(1.0)))
+    # move the clip from inside the optimizer to outside
+    grads = [tf.clip_by_value(grad, -1 * grad_clipping, grad_clipping) for grad in grads]
 
     train_op = optimizer.apply_gradients(
         zip(grads, tvars), global_step=global_step)
@@ -118,7 +119,6 @@ class AdamWeightDecayOptimizer(Optimizer):
                  beta_2=0.999,
                  epsilon=1e-6,
                  exclude_from_weight_decay=None,
-                 grad_clipping=None,  # TODO: use this to clip
                  name="AdamWeightDecayOptimizer"):
         """Constructs a AdamWeightDecayOptimizer."""
         super(AdamWeightDecayOptimizer, self).__init__(False, name)
@@ -129,7 +129,6 @@ class AdamWeightDecayOptimizer(Optimizer):
         self.beta_2 = beta_2
         self.epsilon = epsilon
         self.exclude_from_weight_decay = exclude_from_weight_decay
-        self.grad_clipping = grad_clipping
 
     def _prepare(self):
         self.learning_rate_t = ops.convert_to_tensor(

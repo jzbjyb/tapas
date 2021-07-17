@@ -18,19 +18,26 @@ code:
   local_dir: $CONFIG_DIR
 
 jobs:
+# noreset
 - name: bert_base_wikisql_ep50
   sku: G8
   sku_count: 1
-  aml_mpirun:
-    process_count_per_node: 8
-    communicator: "OpenMpi"
   command:
-  - ./run.sh bert-base-uncased/bert_model.ckpt bert-base-uncased/bert_config.json bert_base_wikisql_ep50
+  - ./run.sh train bert-base-uncased/bert_model.ckpt bert-base-uncased/bert_config.json bert_base_wikisql_ep50
 - name: tapas_base_wikisql_ep50
   sku: G8
   sku_count: 1
-  aml_mpirun:
-    process_count_per_node: 8
-    communicator: "OpenMpi"
   command:
-  - ./run.sh tapas_base/model.ckpt tapas_base/bert_config.json tapas_base_wikisql_ep50
+  - ./run.sh train tapas_base/model.ckpt tapas_base/bert_config.json tapas_base_wikisql_ep50
+
+# reset and grad clip
+- name: bert_base_wikisql_reset_ep50
+  sku: G8
+  sku_count: 1
+  command:
+  - ./run.sh train bert-base-uncased/bert_model.ckpt bert-base-uncased/bert_config.json bert_base_wikisql_reset_ep50
+- name: tapas_base_wikisql_reset_ep50
+  sku: G8
+  sku_count: 1
+  command:
+  - ./run.sh train tapas_base/model.ckpt tapas_base/bert_config.json tapas_base_wikisql_reset_ep50

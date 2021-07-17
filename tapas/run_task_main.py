@@ -546,7 +546,7 @@ def _train_and_predict(
         time.sleep(5 * 60)
         continue
 
-      current_step = int(os.path.basename(checkpoint).split('-')[1])
+      current_step = int(os.path.basename(checkpoint).split('-')[1]) if '-' in os.path.basename(checkpoint) else 0
       _predict(
           estimator,
           task,
