@@ -18,6 +18,7 @@
 import collections
 import copy
 import csv
+import functools
 import json
 from typing import Mapping, Text, Tuple, Iterable, List, Any
 
@@ -89,7 +90,7 @@ def _get_in_memory_input_fn(examples):
   return _input_fn
 
 
-def compute_prediction_sequence(estimator, examples_by_position):
+def compute_prediction_sequence(estimator, examples_by_position, params):
   """Computes predictions using model's answers to the previous questions."""
   all_results = []
   prev_answers = None
@@ -110,7 +111,7 @@ def compute_prediction_sequence(estimator, examples_by_position):
         examples[example_id]["prev_label_ids"] = model_label_ids
 
     results = list(
-        estimator.predict(input_fn=_get_in_memory_input_fn(examples.values())))
+        estimator.predict(input_fn=functools.partial(_get_in_memory_input_fn(examples.values()), params=params)))
     all_results.extend(results)
 
     prev_answers = {}

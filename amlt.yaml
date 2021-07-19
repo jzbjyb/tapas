@@ -23,21 +23,32 @@ jobs:
   sku: G8
   sku_count: 1
   command:
-  - ./run.sh train bert-base-uncased/bert_model.ckpt bert-base-uncased/bert_config.json bert_base_wikisql_ep50
+  - ./run.sh wikisql_sup train bert-base-uncased/bert_model.ckpt bert-base-uncased/bert_config.json bert_base_wikisql_ep50
 - name: tapas_base_wikisql_ep50
   sku: G8
   sku_count: 1
   command:
-  - ./run.sh train tapas_base/model.ckpt tapas_base/bert_config.json tapas_base_wikisql_ep50
+  - ./run.sh wikisql_sup train tapas_base/model.ckpt tapas_base/bert_config.json tapas_base_wikisql_ep50
 
 # reset and grad clip
 - name: bert_base_wikisql_reset_ep50
   sku: G8
   sku_count: 1
   command:
-  - ./run.sh train bert-base-uncased/bert_model.ckpt bert-base-uncased/bert_config.json bert_base_wikisql_reset_ep50
+  - ./run.sh wikisql_sup train bert-base-uncased/bert_model.ckpt bert-base-uncased/bert_config.json bert_base_wikisql_reset_ep50
+- name: bert_base_dummy_wikisql_reset_ep50
+  sku: G8
+  sku_count: 1
+  command:
+  - ./run.sh wikisql_sup train bert-base-uncased-dummy/model.ckpt-0 bert-base-uncased-dummy/bert_config.json bert_base_dummy_wikisql_reset_ep50
+- name: bert_base_dummy_wikisql_reset_ep50_lr1e-5
+  sku: G8
+  sku_count: 1
+  command:
+  - ./run.sh wikisql_sup train bert-base-uncased-dummy/model.ckpt-0 bert-base-uncased-dummy/bert_config.json bert_base_dummy_wikisql_reset_ep50
+    --learning_rate 0.00001
 - name: tapas_base_wikisql_reset_ep50
   sku: G8
   sku_count: 1
   command:
-  - ./run.sh train tapas_base/model.ckpt tapas_base/bert_config.json tapas_base_wikisql_reset_ep50
+  - ./run.sh wikisql_sup train tapas_base/model.ckpt tapas_base/bert_config.json tapas_base_wikisql_reset_ep50

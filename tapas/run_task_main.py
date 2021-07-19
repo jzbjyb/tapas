@@ -98,6 +98,11 @@ flags.DEFINE_integer(
     'Total number of examples to go through in training'
     '(recommended).')
 
+flags.DEFINE_float(
+    'learning_rate', None,
+    'learning rate'
+    '(recommended).')
+
 flags.DEFINE_integer(
     'save_checkpoints_steps', 1000,
     'Save model per steps'
@@ -440,7 +445,7 @@ def _train_and_predict(
   tapas_config = tapas_classifier_model.TapasClassifierConfig(
       bert_config=bert_config,
       init_checkpoint=init_checkpoint,
-      learning_rate=hparams['learning_rate'],
+      learning_rate=FLAGS.learning_rate or hparams['learning_rate'],
       num_train_steps=num_train_steps,
       num_warmup_steps=num_warmup_steps,
       use_tpu=tpu_options.use_tpu,
@@ -696,7 +701,7 @@ def _predict_sequence_for_set(
       add_classification_labels=False,
       add_answer=use_answer_as_supervision)
   result = exp_prediction_utils.compute_prediction_sequence(
-      estimator=estimator, examples_by_position=examples_by_position)
+      estimator=estimator, examples_by_position=examples_by_position, params={'batch_size': FLAGS.test_batch_size})
   exp_prediction_utils.write_predictions(
       result,
       prediction_file,
